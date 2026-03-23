@@ -1,0 +1,1 @@
+<?php echo "Hola, la IA de Vicente funciona"; ?>
