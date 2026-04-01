@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Nova · Hub Académico Inteligente</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -66,6 +66,10 @@
             --bg-tertiary: #F5F0FF;
             --bg-card: rgba(255, 255, 255, 0.9);
             --bg-sidebar: rgba(255, 255, 255, 0.95);
+        }
+
+        [x-cloak] {
+            display: none !important;
         }
 
         * {
@@ -245,7 +249,55 @@
             position: relative;
             overflow: hidden;
             box-shadow: 5px 0 30px -15px rgba(0, 0, 0, 0.5);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.25s ease;
+        }
+
+        @media (max-width: 767px) {
+            #hub-sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                height: 100dvh;
+                z-index: 110;
+                width: min(300px, 90vw);
+                min-width: unset;
+                transform: translateX(-100%);
+                box-shadow: none;
+                overflow-y: auto;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #hub-sidebar.hub-sidebar-open {
+                transform: translateX(0);
+                box-shadow: 8px 0 40px rgba(0, 0, 0, 0.45);
+            }
+
+            #hub-canvas {
+                padding: 3.75rem 1rem 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-grid-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (min-width: 768px) {
+            #hub-sidebar {
+                position: relative;
+                left: auto;
+                top: auto;
+                height: auto;
+                z-index: auto;
+                width: 300px;
+                min-width: 300px;
+                transform: none !important;
+            }
         }
 
         #hub-sidebar::before {
@@ -595,7 +647,9 @@
         /* ── Canvas Principal ───────────────────────────────── */
         #hub-canvas {
             flex: 1;
+            min-width: 0;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 30px 35px;
             position: relative;
         }
@@ -1798,8 +1852,39 @@
 
 <div id="hub-root" x-data="teacherHub()" x-init="init()">
 
+    {{-- Móvil: overlay + barra superior con menú hamburguesa --}}
+    <div
+        x-show="sidebarOpen"
+        x-transition.opacity
+        @click="sidebarOpen = false"
+        class="fixed inset-0 z-[100] bg-black/55 backdrop-blur-[2px] md:hidden"
+        x-cloak
+        aria-hidden="true"
+    ></div>
+
+    <header
+        class="fixed top-0 left-0 right-0 z-[120] flex h-14 items-center gap-3 border-b px-4 md:hidden"
+        style="padding-top: max(0.5rem, env(safe-area-inset-top)); border-color: var(--nova-glass-border); background: var(--bg-secondary); backdrop-filter: blur(12px);"
+    >
+        <button
+            type="button"
+            @click="sidebarOpen = !sidebarOpen"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition hover:opacity-90"
+            style="border-color: var(--nova-glass-border); color: var(--text-primary); background: var(--nova-glass);"
+            :aria-expanded="sidebarOpen"
+            aria-controls="hub-sidebar"
+            aria-label="Menú de navegación"
+        >
+            <i class="fa-solid text-lg" :class="sidebarOpen ? 'fa-xmark' : 'fa-bars'"></i>
+        </button>
+        <span class="min-w-0 truncate text-sm font-bold" style="color: var(--text-primary);">Nova Academy</span>
+    </header>
+
     {{-- SIDEBAR NOVA --}}
-    <aside id="hub-sidebar">
+    <aside
+        id="hub-sidebar"
+        :class="{ 'hub-sidebar-open': sidebarOpen }"
+    >
     <div class="sidebar-brand" style="position: relative;">
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0 20px; position: relative; z-index: 10;">
         <button @click="loadWelcome()" class="brand-button" style="width: auto; flex: 1; padding: 0;">
@@ -2649,6 +2734,7 @@ window.addEventListener('open-ai-bubble', () => {
 
 function teacherHub() {
     return {
+        sidebarOpen:     false,
         view:            'welcome',
         canvasLoading:   false,
         coursesLoading:  false,
@@ -2692,6 +2778,12 @@ function teacherHub() {
             } else {
                 document.documentElement.classList.add('light');
                 localStorage.setItem('nova-theme', 'light');
+            }
+        },
+
+        closeSidebarMobile() {
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                this.sidebarOpen = false;
             }
         },
 
@@ -2741,6 +2833,12 @@ function teacherHub() {
             window.addEventListener('open-activity-modal', (e) => {
                 this.openActivityModalFromExternal(e.detail ?? {});
             });
+
+            window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
+                if (e.matches) {
+                    this.sidebarOpen = false;
+                }
+            });
         },
 
         async loadWelcome() {
@@ -2759,6 +2857,7 @@ function teacherHub() {
                 console.warn('Stats fetch failed', e);
             } finally {
                 this.canvasLoading = false;
+                this.closeSidebarMobile();
             }
         },
 
@@ -2789,6 +2888,7 @@ function teacherHub() {
                 this.view = 'welcome';
             } finally {
                 this.canvasLoading = false;
+                this.closeSidebarMobile();
             }
         },
 
@@ -2834,6 +2934,7 @@ function teacherHub() {
                 console.warn('Calendar fetch failed', e);
             } finally {
                 this.canvasLoading = false;
+                this.closeSidebarMobile();
             }
         },
 

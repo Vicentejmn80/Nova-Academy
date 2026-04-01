@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Centro de Mando · {{ $settings?->nombre_institucion ?? 'Nova Academy' }}</title>
 
@@ -59,6 +59,18 @@
         .delay-3 { animation-delay: .18s; }
         .delay-4 { animation-delay: .24s; }
 
+        [x-cloak] { display: none !important; }
+
+        @media (max-width: 767px) {
+            .director-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+            }
+            .director-sidebar.director-sidebar-open {
+                transform: translateX(0);
+            }
+        }
+
         html.dark aside { background:#120424 !important; border-color:rgba(124,58,237,.2) !important; }
         html.dark .sidebar-link { color:#d8b4fe; }
         html.dark .sidebar-link:hover, html.dark .sidebar-link.active { background:rgba(124,58,237,.2); color:#fff; }
@@ -76,12 +88,23 @@
 </head>
 <body class="min-h-screen">
 
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden relative" x-data="{ sidebarOpen: false }">
+
+    <div
+        x-show="sidebarOpen"
+        x-transition.opacity
+        @click="sidebarOpen = false"
+        class="fixed inset-0 z-40 bg-black/50 md:hidden"
+        x-cloak
+    ></div>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- SIDEBAR                                                    --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <aside class="w-60 bg-white border-r border-slate-100 flex flex-col py-6 px-4 shrink-0">
+    <aside
+        class="director-sidebar fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-slate-100 bg-white px-4 py-6 md:relative md:z-auto md:translate-x-0 md:shrink-0"
+        :class="{ 'director-sidebar-open': sidebarOpen }"
+    >
         {{-- Brand --}}
         <div class="mb-8 px-2">
             <span class="text-lg font-extrabold text-violet-700 tracking-tight">
@@ -104,7 +127,7 @@
         @endif
 
         {{-- Nav —— Director: solo lectura analítica, sin acciones operacionales --}}
-        <nav class="flex flex-col gap-1 flex-1">
+        <nav class="flex flex-col gap-1 flex-1" @click="if ($event.target.closest('a')) sidebarOpen = false">
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-2 mb-1">Reportes</p>
             <a href="{{ route('director.dashboard') }}" class="sidebar-link active">
                 <i class="fa-solid fa-chart-pie w-4 text-center"></i> Visión General
@@ -163,21 +186,32 @@
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- MAIN CONTENT                                               --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
-    <main class="flex-1 overflow-y-auto">
+    <main class="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
 
         {{-- ── Top bar ─────────────────────────────────────────── --}}
-        <div class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-100
-                    px-8 py-4 flex items-center justify-between">
-            <div>
-                <h1 class="text-lg font-bold text-slate-800">Panel de Gestión Institucional</h1>
-                <p class="text-xs text-slate-400 mt-0.5">
+        <div class="sticky top-0 z-20 flex flex-col gap-3 border-b border-slate-100 bg-white/80 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-4"
+             style="padding-top: max(0.75rem, env(safe-area-inset-top));">
+            <div class="flex min-w-0 items-center gap-3">
+                <button
+                    type="button"
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 md:hidden"
+                    @click="sidebarOpen = !sidebarOpen"
+                    :aria-expanded="sidebarOpen"
+                    aria-label="Menú"
+                >
+                    <i class="fa-solid text-lg" :class="sidebarOpen ? 'fa-xmark' : 'fa-bars'"></i>
+                </button>
+                <div class="min-w-0">
+                <h1 class="truncate text-base font-bold text-slate-800 sm:text-lg">Panel de Gestión Institucional</h1>
+                <p class="mt-0.5 truncate text-xs text-slate-400">
                     Última actualización: {{ now()->format('d/m/Y H:i') }}
                 </p>
+                </div>
             </div>
 
             {{-- ── Filters ──────────────────────────────────────── --}}
             <form method="GET" action="{{ route('director.dashboard') }}"
-                  class="flex items-center gap-3">
+                  class="flex flex-wrap items-center gap-2 sm:gap-3">
                 @if($filters['grades']->isNotEmpty())
                 <select name="grade"
                         onchange="this.form.submit()"
@@ -215,7 +249,7 @@
             </form>
         </div>
 
-        <div class="px-8 py-7">
+        <div class="px-4 py-5 sm:px-8 sm:py-7">
 
             {{-- ══════════════════════════════════════════════════ --}}
             {{-- EMPTY STATE                                         --}}
