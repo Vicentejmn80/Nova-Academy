@@ -6,14 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('manual_plannings', function (Blueprint $table) {
             $table->id();
+            // Relación con usuarios (profesores) - Esta sí existe
             $table->foreignId('teacher_id')->constrained('users')->cascadeOnDelete();
+            
+            // Relación con cursos - Esta sí existe
             $table->foreignId('course_id')->nullable()->constrained('courses')->nullOnDelete();
-            // Sin FK: la migración de subjects corre después (2026_03_01); subject_id es referencia lógica opcional.
+            
+            // IMPORTANTE: subject_id como un número simple. 
+            // NO agregamos ->constrained() para que no busque la tabla 'subjects' todavía.
             $table->unsignedBigInteger('subject_id')->nullable();
+            
             $table->unsignedSmallInteger('month')->nullable();
             $table->unsignedSmallInteger('year')->nullable();
             $table->json('sessions');
@@ -21,6 +30,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('manual_plannings');
