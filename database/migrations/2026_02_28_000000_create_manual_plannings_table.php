@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('teacher_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('course_id')->nullable()->constrained('courses')->nullOnDelete();
-            $table->foreignId('subject_id')->nullable()->constrained('subjects')->nullOnDelete();
+            // Sin FK: la migración de subjects corre después (2026_03_01); subject_id es referencia lógica opcional.
+            $table->unsignedBigInteger('subject_id')->nullable();
             $table->unsignedSmallInteger('month')->nullable();
             $table->unsignedSmallInteger('year')->nullable();
             $table->json('sessions');
