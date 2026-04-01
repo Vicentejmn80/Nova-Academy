@@ -36,7 +36,7 @@ class TareaController extends Controller
         $response = Http::withToken($apiKey)
             ->timeout(25)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4o-mini',
+                'model' => 'gpt-5.1 mini ',
                 'temperature' => 0.7,
                 'messages' => [
                     ['role' => 'system', 'content' => $system],

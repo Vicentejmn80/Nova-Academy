@@ -1378,6 +1378,24 @@
             margin-bottom: 15px;
         }
 
+        .activity-description.markdown-body :where(p, ul, ol) {
+            margin: 0 0 0.65em;
+        }
+
+        .activity-description.markdown-body ul,
+        .activity-description.markdown-body ol {
+            padding-left: 1.25rem;
+        }
+
+        .activity-description.markdown-body strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .activity-description.markdown-body p:last-child {
+            margin-bottom: 0;
+        }
+
         .activity-actions {
             display: flex;
             gap: 10px;
@@ -2124,12 +2142,12 @@
 <div class="panel-card">
     <div class="panel-header">
         <h3><i class="fa-solid fa-clipboard-list"></i> Actividades</h3>
-        <span class="panel-count" x-text="courseData.activities.length"></span>
+        <span class="panel-count" x-text="courseData?.activities?.length || 0"></span>
         <a href="{{ route('teacher.activities.index') }}" class="panel-link">
             Nueva <i class="fa-solid fa-plus"></i>
         </a>
     </div>
-    <template x-if="courseData.activities.length === 0">
+    <template x-if="(courseData?.activities?.length || 0) === 0">
         <div style="padding: 40px 20px; text-align: center;">
             <i class="fa-solid fa-pen-to-square" style="font-size: 30px; color: var(--text-tertiary); margin-bottom: 10px;"></i>
             <p style="color: var(--text-tertiary);">Sin actividades creadas.</p>
@@ -2156,7 +2174,7 @@
                     <i class="fa-solid fa-chevron-down activity-chevron" :class="{ 'fa-chevron-up': open }"></i>
                 </div>
                 <div x-show="open" x-cloak class="activity-body">
-                    <p class="activity-description" x-text="a.description || 'Sin descripción.'"></p>
+                    <div class="activity-description markdown-body" x-html="a.description ? renderMarkdown(a.description) : '<p>Sin descripción.</p>'"></div>
                     <div class="activity-actions">
                         <template x-if="a.type === 'clase'">
                             <button @click="sendAICommand(`Genera material de apoyo para la clase «${a.title}» del curso ${courseData.subject_name}`)" class="action-btn primary">
@@ -2342,7 +2360,7 @@
                 <span class="activity-type-badge" x-text="activityModal?.type === 'clase' ? 'CLASE' : 'ACTIVIDAD'"></span>
                 <span style="color: var(--text-tertiary); font-size: 12px;" x-text="activityModal?.course_name"></span>
             </div>
-            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 20px;" x-text="activityModal?.description || 'Sin descripción.'"></p>
+            <div class="markdown-body" style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 20px;" x-html="activityModal?.description ? renderMarkdown(activityModal.description) : '<p>Sin descripción.</p>'"></div>
             <div style="display: flex; gap: 15px; color: var(--text-secondary); font-size: 13px;">
                 <span><i class="fa-regular fa-calendar" style="color: var(--nova-cyan); margin-right: 5px;"></i> <span x-text="activityModal?.due_date ?? '—'"></span></span>
                 <span x-show="activityModal?.max_score > 0"><i class="fa-solid fa-star" style="color: #F59E0B; margin-right: 5px;"></i> Máx: <span x-text="activityModal?.max_score"></span></span>
@@ -2719,6 +2737,10 @@ function teacherHub() {
                 this.refreshCourseSidebar();
                 return true;
             });
+
+            window.addEventListener('open-activity-modal', (e) => {
+                this.openActivityModalFromExternal(e.detail ?? {});
+            });
         },
 
         async loadWelcome() {
@@ -3064,6 +3086,73 @@ function teacherHub() {
                 section: activity?.section ?? fallbackCourse?.section ?? '',
             };
             this.setNovaContext(context);
+        },
+
+        findActivityByIdLocal(activityId) {
+            const id = Number(activityId);
+            if (!id) return null;
+
+            if (this.courseData?.activities?.length) {
+                const foundInCourse = this.courseData.activities.find(a => Number(a.id) === id);
+                if (foundInCourse) return foundInCourse;
+            }
+
+            if (this.calendarData?.activities_by_day) {
+                for (const dayKey in this.calendarData.activities_by_day) {
+                    const list = this.calendarData.activities_by_day?.[dayKey] ?? [];
+                    const foundInCalendar = list.find(a => Number(a.id) === id);
+                    if (foundInCalendar) return foundInCalendar;
+                }
+            }
+
+            return null;
+        },
+
+        async openActivityModalFromExternal(payload = {}) {
+            const activityId = Number(payload?.id ?? 0);
+            if (!activityId) return;
+
+            let activity = this.findActivityByIdLocal(activityId);
+            const targetCourseId = Number(payload?.course_id ?? activity?.course_id ?? 0);
+            const targetDate = payload?.due_date ?? activity?.due_date ?? null;
+
+            if (!activity && targetCourseId > 0) {
+                await this.loadCourse(targetCourseId);
+                activity = this.findActivityByIdLocal(activityId);
+            }
+
+            if (!activity && targetDate) {
+                const month = String(targetDate).slice(0, 7);
+                if (month) {
+                    await this.loadCalendar(month);
+                    activity = this.findActivityByIdLocal(activityId);
+                }
+            }
+
+            if (!activity) {
+                window.dispatchEvent(new CustomEvent('ai-toast', {
+                    detail: { message: 'No se encontró la actividad en la vista actual.', type: 'error' }
+                }));
+                return;
+            }
+
+            if (this.view !== 'calendar' && targetDate) {
+                const month = String(targetDate).slice(0, 7);
+                if (month) {
+                    await this.loadCalendar(month);
+                    activity = this.findActivityByIdLocal(activityId) ?? activity;
+                }
+            }
+
+            this.setActivityContext(activity);
+            this.activityModal = activity;
+
+            this.$nextTick(() => {
+                const calendarGrid = document.querySelector('.calendar-grid');
+                if (calendarGrid) {
+                    calendarGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
         },
 
         isToday(day) {

@@ -6,12 +6,12 @@
             --hist-grad-primary: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
             --hist-grad-manual:  linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
         }
-        body { background: #f5f3ff !important; }
+        body { background: #f4f2ff !important; }
 
         .hist-banner {
             background: var(--hist-grad-dark);
             border-radius: 1.5rem;
-            padding: 1.75rem 2rem;
+            padding: 2rem;
             margin-bottom: 2rem;
             display: flex;
             flex-direction: column;
@@ -21,38 +21,52 @@
             .hist-banner { flex-direction: row; align-items: center; justify-content: space-between; }
         }
         .hist-banner h1 {
-            font-size: 1.65rem; font-weight: 900; margin: 0;
-            background: linear-gradient(90deg, #e9d5ff, #fce7f3);
+            font-size: 1.85rem; font-weight: 900; margin: 0;
+            background: linear-gradient(90deg, #f9f5ff, #fde9ff);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .hist-banner p { color: #c4b5fd; margin: .25rem 0 0; font-size: .9rem; }
-
-        .btn-hist-primary {
-            display: inline-flex; align-items: center; gap: .5rem;
-            background: var(--hist-grad-primary); color: #fff !important;
-            font-weight: 700; font-size: .85rem;
-            padding: .65rem 1.25rem; border-radius: .875rem; border: none;
-            text-decoration: none; cursor: pointer; white-space: nowrap;
-            box-shadow: 0 4px 16px rgba(192,38,211,.3);
-            transition: opacity .15s, transform .15s;
+        .hist-banner p {
+            color: #d8c7ff;
+            margin: .35rem 0 0;
+            font-size: .95rem;
+            max-width: 360px;
         }
-        .btn-hist-primary:hover { opacity: .9; transform: translateY(-1px); }
+
+        .btn-hist-primary,
+        .btn-hist-secondary {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-weight: 700; font-size: .9rem;
+            padding: .65rem 1.4rem; border-radius: 999px; border: none;
+            text-decoration: none; cursor: pointer; white-space: nowrap;
+            transition: transform .15s, box-shadow .15s, opacity .15s;
+        }
+        .btn-hist-primary {
+            background: var(--hist-grad-primary); color: #fff !important;
+            box-shadow: 0 12px 30px rgba(124,58,237,.25);
+        }
+        .btn-hist-primary:hover { opacity: .96; transform: translateY(-2px); box-shadow: 0 18px 38px rgba(124,58,237,.3); }
+        .btn-hist-secondary {
+            background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4); color: #fff !important;
+            box-shadow: 0 10px 20px rgba(15,23,42,.25);
+        }
+        .btn-hist-secondary:hover { opacity: .92; }
 
         .historial-card {
             background: #fff;
-            border: 1px solid #ede9fe;
-            border-radius: 1.25rem;
-            padding: 1.25rem;
-            height: 100%;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            min-height: 240px;
             display: flex;
             flex-direction: column;
             transition: transform .2s ease, box-shadow .2s ease;
+            border: 1px solid rgba(124, 58, 237, .15);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, .06);
             position: relative;
             overflow: hidden;
         }
         .historial-card::before {
             content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            position: absolute; top: 0; left: 0; right: 0; height: 6px;
             background: var(--hist-grad-primary);
         }
         .historial-card.is-manual::before {
@@ -60,8 +74,8 @@
         }
 
         .historial-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(124,58,237,.12);
+            transform: translateY(-6px);
+            box-shadow: 0 26px 48px rgba(15, 23, 42, .16);
         }
         .hist-badge {
             display: inline-block; font-size: .72rem; font-weight: 700;
@@ -73,10 +87,10 @@
         .hist-badge.ai { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
 
         .historial-card h3 {
-            font-size: .95rem; font-weight: 800; color: #1e1b4b; margin: 0 0 .5rem;
+            font-size: 1rem; font-weight: 800; color: #1e1b4b; margin: 0 0 .5rem;
         }
         .hist-obj {
-            font-size: .82rem; color: #6b7280; flex: 1;
+            font-size: .85rem; color: #6b7280; flex: 1;
             display: -webkit-box; -webkit-line-clamp: 3;
             -webkit-box-orient: vertical; overflow: hidden;
             margin-bottom: .75rem;
@@ -85,20 +99,60 @@
         .hist-actions { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
         
         .btn-hist-delete {
-            width: 32px; height: 32px; border-radius: .625rem; border: 1px solid #fce7f3;
+            width: 32px; height: 32px; border-radius: .75rem; border: 1px solid rgba(192,38,211,.2);
             background: #fdf4ff; color: #c026d3; display: flex; align-items: center;
             justify-content: center; cursor: pointer; transition: background .15s;
         }
-        .btn-hist-delete:hover { background: #fce7f3; }
+        .btn-hist-delete:hover { background: rgba(220, 38, 113, .12); }
         
         .btn-hist-open {
             display: inline-flex; align-items: center; gap: .4rem;
             background: var(--hist-grad-primary); color: #fff !important;
-            font-weight: 700; font-size: .8rem; padding: .45rem 1rem;
-            border-radius: .75rem; text-decoration: none; transition: opacity .15s;
+            font-weight: 700; font-size: .85rem; padding: .5rem 1.1rem;
+            border-radius: .85rem; text-decoration: none; transition: opacity .15s;
         }
         .btn-hist-open.btn-manual { background: var(--hist-grad-manual); }
-        .btn-hist-open:hover { opacity: .88; }
+        .btn-hist-open:hover { opacity: .92; }
+
+        .empty-card {
+            max-width: 540px;
+            margin: 0 auto;
+            background: rgba(255,255,255,.9);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(124, 58, 237, .12);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(30,15,60,.12);
+        }
+        .empty-card .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            border-radius: 1rem;
+            background: linear-gradient(135deg,#c026d3,#7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+        }
+        .empty-card h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: .45rem;
+            color: #130a2b;
+        }
+        .empty-card p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        .empty-card .empty-helper {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: .85rem;
+            color: #7c3aed;
+        }
 
         /* Modal Styles */
         .historial-modal-backdrop {
@@ -127,16 +181,29 @@
                 <h1>📚 Historial de Planificaciones</h1>
                 <p>Gestiona, visualiza y mejora tus clases guardadas bajo el sello Nova Academy.</p>
             </div>
-            <a href="{{ route('teacher.hub') }}" class="btn-hist-primary">
-                <i class="fas fa-plus"></i> Nueva Planificación
-            </a>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('teacher.hub') }}" class="btn-hist-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Hub
+                </a>
+                <a href="{{ route('teacher.hub') }}" class="btn-hist-primary">
+                    <i class="fas fa-plus"></i> Nueva Planificación
+                </a>
+            </div>
         </div>
 
         @if($plans->isEmpty())
-            <div class="text-center py-5">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">📂</div>
-                <h2 class="h4 text-dark font-weight-bold">No hay planes guardados</h2>
-                <p class="text-muted">Tus planificaciones aparecerán aquí una vez que las guardes.</p>
+            <div class="py-12">
+                <div class="empty-card mx-auto">
+                    <div class="icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h2>No hay planes guardados</h2>
+                    <p>Tus planificaciones aparecerán aquí en cuanto las guardes. Puedes crear una nueva planificación con el botón superior.</p>
+                    <div class="empty-helper">
+                        <i class="fas fa-info-circle"></i>
+                        Mantén tu historial organizado con el clic del asistente.
+                    </div>
+                </div>
             </div>
         @else
             <div class="row g-4" id="historialGrid">

@@ -170,7 +170,7 @@ class ActivitiesController extends Controller
             $res = Http::withToken($apiKey)
                 ->timeout(25)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4.1',
+                    'model' => 'gpt-5.1 mini',
                     'temperature' => 0.7,
                     'messages' => [
                         ['role' => 'system', 'content' => $system],
@@ -212,7 +212,7 @@ class ActivitiesController extends Controller
             $res = Http::withToken($apiKey)
                 ->timeout(25)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4o-mini',
+                    'model' => 'gpt-5.1 mini ',
                     'temperature' => 0.7,
                     'messages' => [
                         ['role' => 'system', 'content' => $system],
@@ -279,7 +279,7 @@ class ActivitiesController extends Controller
             $res = Http::withToken($apiKey)
                 ->timeout(25)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4o-mini', // Corregido
+                    'model' => 'gpt-5.1 mini ', // Corregido
                     'temperature' => 0.8,
                     'messages' => [
                         ['role' => 'system', 'content' => $system],

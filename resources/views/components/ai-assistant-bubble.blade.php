@@ -1,305 +1,776 @@
 {{--
-  AI Assistant Bubble v2 — Typed action cards + screen context awareness.
-  Requires: Alpine.js, Tailwind CSS, Font Awesome.
+  AI Assistant Bubble v3 — Nova Assistant
+  Diseño innovador con gradientes, microinteracciones y experiencia premium
 --}}
 <style>
-    #ai-bubble-btn {
-        background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
-        box-shadow: 0 8px 28px rgba(192,38,211,.5);
-        transition: transform .2s, box-shadow .2s;
+    /* ─────────────── NOVA AI BUBBLE v3 ─────────────── */
+    .nova-ai-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
     }
-    #ai-bubble-btn:hover { transform: scale(1.1); box-shadow: 0 12px 36px rgba(192,38,211,.65); }
-    #ai-bubble-btn.listening {
-        animation: mic-pulse 1.2s ease-in-out infinite;
-        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    }
-    @keyframes mic-pulse {
-        0%,100% { box-shadow: 0 8px 24px rgba(239,68,68,.4); }
-        50%      { box-shadow: 0 8px 32px rgba(239,68,68,.8), 0 0 0 14px rgba(239,68,68,.1); }
-    }
-    #ai-panel {
-        box-shadow: 0 24px 64px rgba(0,0,0,.18), 0 0 0 1px rgba(124,58,237,.08);
-        transform-origin: bottom right;
-        transition: opacity .2s, transform .2s;
-    }
-    #ai-panel.ai-entering { opacity: 0; transform: scale(.93) translateY(14px); }
-    #ai-panel.ai-visible  { opacity: 1; transform: scale(1)   translateY(0); }
 
-    /* Message bubbles */
-    .ai-bubble-user { background:#ede9fe; color:#3b0764; border-radius:1rem 1rem .25rem 1rem; }
-    .ai-bubble-info { background:#f8fafc; color:#475569; border-radius:.25rem 1rem 1rem 1rem; border:1px solid #e2e8f0; }
-
-    /* Typed action card */
-    .ai-action-card {
-        border-radius: .875rem;
-        border: 1px solid;
-        padding: .625rem .875rem;
+    /* Botón flotante principal */
+    .nova-ai-trigger {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #6C4AE0 0%, #C455ED 100%);
+        border-radius: 28px;
         display: flex;
-        align-items: flex-start;
-        gap: .625rem;
-        font-size: .78rem;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(108, 74, 224, 0.4);
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nova-ai-trigger::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .nova-ai-trigger:hover::before {
+        transform: translateX(100%);
+    }
+
+    .nova-ai-trigger:hover {
+        transform: scale(1.08);
+        box-shadow: 0 12px 32px rgba(108, 74, 224, 0.6);
+    }
+
+    .nova-ai-trigger:active {
+        transform: scale(0.95);
+    }
+
+    .nova-ai-trigger.listening {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        animation: pulse-glow 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4); }
+        50% { box-shadow: 0 8px 32px rgba(239, 68, 68, 0.8), 0 0 0 8px rgba(239, 68, 68, 0.15); }
+    }
+
+    .nova-ai-trigger i {
+        font-size: 24px;
+        color: white;
+        transition: transform 0.3s ease;
+    }
+
+    .nova-ai-trigger:hover i {
+        transform: scale(1.05);
+    }
+
+    /* Panel principal */
+    .nova-ai-panel {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 400px;
+        height: 620px;
+        background: rgba(10, 10, 31, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 32px;
+        border: 1px solid rgba(108, 74, 224, 0.3);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        transform-origin: bottom right;
+    }
+
+    .nova-ai-panel.entering {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+
+    .nova-ai-panel.visible {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    /* Header con gradiente animado */
+    .nova-ai-header {
+        background: linear-gradient(135deg, #6C4AE0 0%, #C455ED 50%, #3BC9DB 100%);
+        background-size: 200% 100%;
+        animation: gradient-shift 6s ease infinite;
+        padding: 18px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    .nova-ai-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .nova-ai-header-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .nova-ai-avatar {
+        width: 44px;
+        height: 44px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .nova-ai-avatar i {
+        font-size: 24px;
+        color: white;
+    }
+
+    .nova-ai-title h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+
+    .nova-ai-title p {
+        font-size: 11px;
+        color: rgba(255,255,255,0.7);
+        margin: 2px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .nova-ai-badge {
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 2px 8px;
+        font-size: 9px;
+        font-weight: 600;
+    }
+
+    .nova-ai-close {
+        width: 32px;
+        height: 32px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: auto;
+    }
+
+    .nova-ai-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.05);
+    }
+
+    /* Context chip */
+    .nova-ai-context {
+        background: rgba(108, 74, 224, 0.15);
+        border-bottom: 1px solid rgba(108, 74, 224, 0.2);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .context-chip {
+        background: linear-gradient(135deg, rgba(108,74,224,0.3), rgba(196,85,237,0.2));
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        color: #C455ED;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(108,74,224,0.3);
+    }
+
+    /* Área de mensajes */
+    .nova-ai-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        scroll-behavior: smooth;
+    }
+
+    .nova-ai-messages::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .nova-ai-messages::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 4px;
+    }
+
+    .nova-ai-messages::-webkit-scrollbar-thumb {
+        background: rgba(108,74,224,0.4);
+        border-radius: 4px;
+    }
+
+    /* Burbujas de mensaje */
+    .message-user {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .message-user .bubble {
+        background: linear-gradient(135deg, #6C4AE0 0%, #C455ED 100%);
+        color: white;
+        border-radius: 20px 20px 4px 20px;
+        padding: 10px 14px;
+        max-width: 85%;
+        font-size: 13px;
         line-height: 1.5;
-        max-width: 95%;
-    }
-    .ai-action-card.success-course   { background:#f0fdf4; border-color:#bbf7d0; color:#14532d; }
-    .ai-action-card.success-activity { background:#eff6ff; border-color:#bfdbfe; color:#1e3a5f; }
-    .ai-action-card.success-student  { background:#faf5ff; border-color:#e9d5ff; color:#4c1d95; }
-    .ai-action-card.success-default  { background:#f0fdf4; border-color:#bbf7d0; color:#14532d; }
-    .ai-action-card.error-card       { background:#fef2f2; border-color:#fecaca; color:#7f1d1d; }
-    .ai-action-card.warn-card        { background:#fffbeb; border-color:#fde68a; color:#78350f; }
-
-    .ai-action-icon {
-        font-size: 1.1rem;
-        line-height: 1;
-        flex-shrink: 0;
-        margin-top: .1rem;
+        box-shadow: 0 2px 8px rgba(108,74,224,0.3);
     }
 
-    /* Typing dots */
-    .ai-dot { display:inline-block;width:6px;height:6px;border-radius:50%;background:#7c3aed;animation:ai-dot .8s infinite; }
-    .ai-dot:nth-child(2){animation-delay:.15s;}
-    .ai-dot:nth-child(3){animation-delay:.30s;}
-    @keyframes ai-dot{0%,80%,100%{transform:translateY(0);opacity:.4;}40%{transform:translateY(-5px);opacity:1;}}
+    .message-assistant {
+        display: flex;
+        justify-content: flex-start;
+    }
 
-    /* Context badge */
-    .ai-ctx-badge { animation: ctx-slide .25s ease; }
-    @keyframes ctx-slide { from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;} }
+    .message-assistant .bubble {
+        background: rgba(30, 26, 58, 0.9);
+        backdrop-filter: blur(4px);
+        color: #E2E8F0;
+        border-radius: 20px 20px 20px 4px;
+        padding: 10px 14px;
+        max-width: 85%;
+        font-size: 13px;
+        line-height: 1.5;
+        border: 1px solid rgba(108,74,224,0.2);
+    }
+
+    .message-info {
+        display: flex;
+        justify-content: center;
+    }
+
+    .message-info .bubble {
+        background: rgba(245, 158, 11, 0.15);
+        color: #F59E0B;
+        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 11px;
+        border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    .message-action {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .action-card {
+        background: rgba(16, 185, 129, 0.1);
+        border-left: 3px solid #10B981;
+        border-radius: 12px;
+        padding: 10px 12px;
+        max-width: 90%;
+        font-size: 12px;
+        color: #A7F3D0;
+    }
+
+    .message-activity_created {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .created-activity-card {
+        width: 100%;
+        max-width: 92%;
+        border-radius: 14px;
+        border: 1px solid rgba(196, 85, 237, 0.35);
+        background: linear-gradient(135deg, rgba(30, 26, 58, 0.95), rgba(18, 16, 42, 0.95));
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+        padding: 12px 14px;
+    }
+
+    .created-activity-card .title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #F3E8FF;
+        margin: 0 0 6px 0;
+    }
+
+    .created-activity-card .meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: #C4B5FD;
+        margin-bottom: 10px;
+    }
+
+    .created-activity-card .meta span {
+        background: rgba(124, 58, 237, 0.18);
+        border: 1px solid rgba(124, 58, 237, 0.28);
+        border-radius: 999px;
+        padding: 2px 8px;
+    }
+
+    .created-activity-card .open-btn {
+        border: none;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #6C4AE0 0%, #C455ED 100%);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    .created-activity-card .open-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .created-activity-card .open-btn.loading {
+        opacity: 0.75;
+        cursor: wait;
+        transform: none;
+        background: linear-gradient(135deg, #4C1D95 0%, #7E22CE 100%);
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+        display: flex;
+        gap: 6px;
+        padding: 10px 14px;
+        background: rgba(30, 26, 58, 0.8);
+        border-radius: 20px;
+        width: fit-content;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #C455ED;
+        border-radius: 50%;
+        animation: typing-bounce 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; background: #6C4AE0; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; background: #3BC9DB; }
+
+    @keyframes typing-bounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+        30% { transform: translateY(-8px); opacity: 1; }
+    }
+
+    /* Input area */
+    .nova-ai-input {
+        padding: 16px;
+        border-top: 1px solid rgba(108,74,224,0.2);
+        background: rgba(10,10,31,0.8);
+    }
+
+    .input-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        background: rgba(30,26,58,0.6);
+        border-radius: 24px;
+        padding: 6px 6px 6px 16px;
+        border: 1px solid rgba(108,74,224,0.3);
+        transition: all 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+        border-color: #6C4AE0;
+        box-shadow: 0 0 0 2px rgba(108,74,224,0.2);
+    }
+
+    .nova-ai-input textarea {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 13px;
+        resize: none;
+        outline: none;
+        font-family: inherit;
+        max-height: 100px;
+    }
+
+    .nova-ai-input textarea::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+
+    .input-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .voice-btn, .send-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        background: rgba(108,74,224,0.2);
+        color: #C455ED;
+    }
+
+    .voice-btn:hover, .send-btn:hover {
+        background: rgba(108,74,224,0.4);
+        transform: scale(1.05);
+    }
+
+    .voice-btn.listening {
+        background: #EF4444;
+        color: white;
+        animation: mic-pulse 1.2s infinite;
+    }
+
+    @keyframes mic-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+        50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+    }
+
+    /* Skeleton loader */
+    .skeleton-message {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(30,26,58,0.4);
+        border-radius: 16px;
+        margin-bottom: 8px;
+    }
+
+    .skeleton-avatar {
+        width: 32px;
+        height: 32px;
+        background: rgba(108,74,224,0.3);
+        border-radius: 10px;
+    }
+
+    .skeleton-lines {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .skeleton-line {
+        height: 10px;
+        background: linear-gradient(90deg, rgba(108,74,224,0.2), rgba(108,74,224,0.4), rgba(108,74,224,0.2));
+        background-size: 200% 100%;
+        animation: skeleton-wave 1.5s infinite;
+        border-radius: 5px;
+    }
+
+    @keyframes skeleton-wave {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Toast */
+    .nova-toast {
+        position: fixed;
+        bottom: 100px;
+        right: 420px;
+        background: #10B981;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: toast-in 0.3s ease;
+    }
+
+    @keyframes toast-in {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Sugerencias rápidas */
+    .quick-suggestions {
+        display: flex;
+        gap: 8px;
+        padding: 8px 16px 12px;
+        flex-wrap: wrap;
+        border-top: 1px solid rgba(108,74,224,0.1);
+    }
+
+    .suggestion-chip {
+        background: rgba(108,74,224,0.15);
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 11px;
+        color: #A78BFA;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(108,74,224,0.2);
+    }
+
+    .suggestion-chip:hover {
+        background: rgba(108,74,224,0.3);
+        transform: translateY(-1px);
+    }
+
+    /* Dark mode support para el panel */
+    html.light .nova-ai-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+    }
+
+    html.light .message-assistant .bubble {
+        background: rgba(240, 240, 255, 0.95);
+        color: #1E1B4B;
+    }
+
+    html.light .nova-ai-input {
+        background: rgba(255,255,255,0.9);
+    }
+
+    html.light .input-wrapper {
+        background: #F3F4F6;
+    }
+
+    html.light .nova-ai-input textarea {
+        color: #1E1B4B;
+    }
+
+    html.light .suggestion-chip {
+        background: #EDE9FE;
+        color: #6C4AE0;
+    }
 </style>
 
-<div
-    id="ai-assistant-root"
-    x-data="aiAssistant()"
-    x-init="init()"
-    class="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3"
->
-    {{-- OVERLAY PANEL --}}
-    <div id="ai-panel"
-         x-show="open"
-         x-cloak
-         :class="panelClass"
-         class="bg-white rounded-3xl overflow-hidden flex flex-col"
-         style="width:390px; max-height:540px;"
-         @keydown.escape.window="open = false"
-    >
-        {{-- Header --}}
-        <div class="px-5 py-3.5 flex items-center justify-between shrink-0"
-             style="background: linear-gradient(135deg, #6d28d9 0%, #c026d3 100%)">
-            <div class="flex items-center gap-2.5 text-white">
-                <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                    <i class="fa-solid fa-robot text-sm"></i>
+<div class="nova-ai-container" x-data="novaAIAssistant()" x-init="init()">
+    <!-- Toast -->
+    <div x-show="toast.visible" x-cloak class="nova-toast" :class="toast.type">
+        <i class="fa-solid" :class="toast.icon"></i>
+        <span x-text="toast.message"></span>
+    </div>
+
+    <!-- Panel principal -->
+    <div class="nova-ai-panel" x-show="open" x-cloak :class="panelAnimation">
+        <!-- Header -->
+        <div class="nova-ai-header">
+            <div class="nova-ai-header-content">
+                <div class="nova-ai-avatar">
+                    <i class="fa-solid fa-robot"></i>
                 </div>
-                <div>
-                    <p class="text-sm font-bold leading-tight">Asistente IA</p>
-                    <p class="text-[10px] text-violet-200">Habla o escribe en lenguaje natural</p>
+                <div class="nova-ai-title">
+                    <h3>Nova Assistant</h3>
+                    <p><span class="nova-ai-badge">IA Educativa</span> <span>⚡ Siempre activa</span></p>
                 </div>
-            </div>
-            <div class="flex items-center gap-2">
-                {{-- Context chip con más info --}}
-                <div x-show="pageContext"
-                     x-cloak
-                     class="ai-ctx-badge bg-white/15 text-white text-[10px] font-semibold
-                            px-2.5 py-1 rounded-full flex items-center gap-1 max-w-[120px]">
-                    <i class="fa-solid fa-location-dot text-violet-200 text-[9px]"></i>
-                    <span x-text="pageContext?.name ?? pageContext?.subject_name ?? ''" class="truncate"></span>
-                </div>
-                <button @click="open = false"
-                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30
-                               flex items-center justify-center transition text-white text-xs">
+                <div class="nova-ai-close" @click="open = false">
                     <i class="fa-solid fa-xmark"></i>
-                </button>
+                </div>
             </div>
         </div>
 
-        {{-- Message log --}}
-        <div id="ai-log"
-             class="flex-1 overflow-y-auto px-4 py-3 space-y-2 flex flex-col min-h-0">
+        <!-- Contexto activo -->
+        <div class="nova-ai-context" x-show="pageContext" x-cloak>
+            <div class="context-chip">
+                <i class="fa-solid fa-location-dot"></i>
+                <span x-text="pageContext?.name || pageContext?.subject_name || pageContext?.title"></span>
+            </div>
+            <div class="context-chip" x-show="pageContext?.type">
+                <i class="fa-solid" :class="pageContext?.type === 'clase' ? 'fa-book' : 'fa-clipboard-list'"></i>
+                <span x-text="pageContext?.type === 'clase' ? 'Clase teórica' : 'Actividad'"></span>
+            </div>
+        </div>
 
+        <!-- Mensajes -->
+        <div class="nova-ai-messages" x-ref="messagesContainer">
             <template x-if="messages.length === 0">
-                <div class="text-center text-slate-400 text-xs py-8">
-                    <i class="fa-solid fa-wand-magic-sparkles text-2xl text-violet-300 mb-2 block"></i>
-                    Escribe o dicta un comando para empezar.
+                <div class="message-assistant">
+                    <div class="bubble">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 8px; color: #C455ED;"></i>
+                        ¡Hola! Soy Nova, tu asistente educativo.<br>
+                        Puedes pedirme que:<br>
+                        • ✏️ Modifique una clase o actividad<br>
+                        • 📝 Cree planificaciones mensuales<br>
+                        • 🗑️ Elimine actividades por fechas<br>
+                        • 🎯 Genere rúbricas o materiales<br><br>
+                        <strong>¿En qué puedo ayudarte hoy?</strong>
+                    </div>
                 </div>
             </template>
 
             <template x-for="(msg, idx) in messages" :key="idx">
-                <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
-
-                    {{-- User bubble --}}
-                    <template x-if="msg.role === 'user'">
-                        <div class="ai-bubble-user px-3.5 py-2 text-xs font-medium max-w-[85%]">
-                            <span x-text="msg.text"></span>
+                <div>
+                    <template x-if="msg.role !== 'activity_created'">
+                        <div :class="`message-${msg.role}`">
+                            <div class="bubble" x-html="renderMarkdown(msg.text)"></div>
                         </div>
                     </template>
-
-                    {{-- Typed action card --}}
-                    <template x-if="msg.role === 'action'">
-                        <div class="ai-action-card"
-                             :class="getCardClass(msg)">
-                            <span class="ai-action-icon" x-text="msg.icon || '✦'"></span>
-                            <span x-html="renderMarkdown(msg.text)"></span>
-                        </div>
-                    </template>
-
-                    {{-- Plain info/error --}}
-                    <template x-if="msg.role === 'info'">
-                        <div class="ai-bubble-info px-3.5 py-2 text-xs max-w-[90%]"
-                             :class="{ 'error-card ai-action-card': msg.type === 'error' }">
-                            <span x-html="renderMarkdown(msg.text)"></span>
+                    <template x-if="msg.role === 'activity_created'">
+                        <div class="message-activity_created">
+                            <div class="created-activity-card">
+                                <p class="title" x-text="msg.activity?.title || 'Actividad creada'"></p>
+                                <div class="meta">
+                                    <span x-show="msg.activity?.course_name" x-text="msg.activity?.course_name"></span>
+                                    <span x-show="msg.activity?.due_date" x-text="msg.activity?.due_date"></span>
+                                    <span x-show="msg.activity?.type" x-text="msg.activity?.type"></span>
+                                </div>
+                                <button class="open-btn"
+                                        :class="{ 'loading': openingActivityId === msg.activity?.id }"
+                                        :disabled="openingActivityId === msg.activity?.id"
+                                        @click="openCreatedActivity(msg.activity)">
+                                    <span x-show="openingActivityId !== msg.activity?.id">Ver actividad creada →</span>
+                                    <span x-show="openingActivityId === msg.activity?.id">Abriendo...</span>
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>
             </template>
 
-            {{-- Typing indicator --}}
-            <div x-show="loading" class="flex justify-start">
-                <div class="ai-bubble-info px-4 py-2.5 flex items-center gap-1">
-                    <span class="ai-dot"></span>
-                    <span class="ai-dot"></span>
-                    <span class="ai-dot"></span>
-                </div>
-            </div>
-
-            {{-- Confirmation panel --}}
-            <div x-show="confirmation" x-cloak class="flex justify-start w-full">
-                <div class="ai-action-card warn-card w-full">
-                    <span class="ai-action-icon">⚠️</span>
-                    <div class="flex-1">
-                        <p class="font-bold mb-1">Acción destructiva detectada</p>
-                        <p x-text="confirmation?.warning" class="mb-2 text-xs opacity-80"></p>
-                        <div class="space-y-1 mb-3">
-                            <template x-for="a in (confirmation?.destructive_actions ?? [])" :key="a.function">
-                                <div class="flex items-center gap-1.5 text-xs">
-                                    <i class="fa-solid fa-trash-alt text-red-400 text-[10px]"></i>
-                                    <span class="font-mono" x-text="formatDestructive(a)"></span>
-                                </div>
-                            </template>
+            <!-- Loading skeleton -->
+            <template x-if="loading">
+                <div class="message-assistant">
+                    <div class="bubble">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
                         </div>
-                        <div class="flex gap-2">
-                            <button @click="executeConfirmed()"
-                                    class="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs
-                                           font-bold py-2 rounded-xl transition">
-                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Sí, ejecutar
-                            </button>
-                            <button @click="confirmation = null"
-                                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600
-                                           text-xs font-semibold py-2 rounded-xl transition">
-                                Cancelar
-                            </button>
-                        </div>
+                        <span style="font-size: 11px; margin-left: 8px;">Nova está pensando...</span>
                     </div>
                 </div>
-            </div>
+            </template>
         </div>
 
-        {{-- Reload banner --}}
-        <div x-show="showReload" x-cloak
-             class="px-4 py-2.5 bg-emerald-50 border-t border-emerald-100
-                    flex items-center justify-between shrink-0">
-            <span class="text-xs text-emerald-700 font-medium">
-                <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>
-                Cambios aplicados correctamente
+        <!-- Sugerencias rápidas -->
+        <div class="quick-suggestions" x-show="messages.length > 0 && !loading">
+            <span class="suggestion-chip" @click="input = 'Modifica esta clase para que los alumnos copien en su cuaderno'; sendCommand()">
+                📝 Copiar en cuaderno
             </span>
-            <button @click="reload()"
-                    class="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
-                <i class="fa-solid fa-rotate-right text-xs"></i> Actualizar
-            </button>
+            <span class="suggestion-chip" @click="input = 'Agrega una actividad práctica al final de la clase'; sendCommand()">
+                🎮 Actividad práctica
+            </span>
+            <span class="suggestion-chip" @click="input = 'Incluye una rúbrica de evaluación'; sendCommand()">
+                📊 Rúbrica
+            </span>
+            <span class="suggestion-chip" @click="input = 'Adapta para estudiantes con TDAH'; sendCommand()">
+                🧠 Adaptación NEE
+            </span>
         </div>
 
-        {{-- Input area --}}
-        <div class="px-4 py-3 border-t border-slate-100 shrink-0">
-            <div class="flex items-end gap-2">
-                <textarea
-                    x-model="input"
-                    @keydown.enter.prevent="if(!$event.shiftKey) sendCommand()"
-                    :disabled="loading"
-                    rows="2"
-                    :placeholder="getInputPlaceholder()"
-                    class="flex-1 border border-slate-700 bg-[#0f1228] text-white caret-white rounded-2xl py-2.5 px-3.5 text-xs
-                           resize-none focus:outline-none focus:border-violet-400 focus:ring-2
-                           focus:ring-violet-500/30 transition disabled:opacity-50 disabled:bg-slate-900 placeholder:text-slate-400"
-                ></textarea>
-                <div class="flex flex-col gap-1.5 shrink-0">
-                    <button @click="toggleVoice()"
-                            :class="listening ? 'bg-red-500 text-white' : 'bg-violet-100 text-violet-600'"
-                            class="w-9 h-9 rounded-xl flex items-center justify-center transition hover:scale-105"
-                            title="Dictado de voz">
-                        <i class="fa-solid text-sm" :class="listening ? 'fa-stop' : 'fa-microphone'"></i>
+        <!-- Input -->
+        <div class="nova-ai-input">
+            <div class="input-wrapper">
+                <textarea x-model="input" @keydown.enter.prevent="if(!$event.shiftKey) sendCommand()" :disabled="loading" rows="1" placeholder="Escribe tu mensaje..."></textarea>
+                <div class="input-actions">
+                    <button class="voice-btn" :class="{ 'listening': listening }" @click="toggleVoice()" title="Dictado de voz">
+                        <i class="fa-solid" :class="listening ? 'fa-stop' : 'fa-microphone'"></i>
                     </button>
-                    <button @click="sendCommand()"
-                            :disabled="loading || !input.trim()"
-                            class="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-700
-                                   disabled:opacity-40 disabled:cursor-not-allowed
-                                   text-white flex items-center justify-center transition hover:scale-105">
-                        <i class="fa-solid text-sm" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+                    <button class="send-btn" @click="sendCommand()" :disabled="loading || !input.trim()">
+                        <i class="fa-solid" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
                     </button>
                 </div>
             </div>
-            <p x-show="listening"
-               class="text-[10px] text-red-500 font-medium mt-1.5 text-center animate-pulse">
-                🔴 Escuchando…
-            </p>
+            <div x-show="listening" class="voice-status" style="font-size: 10px; color: #EF4444; text-align: center; margin-top: 6px;">
+                🔴 Escuchando...
+            </div>
         </div>
     </div>
 
-    {{-- FLOATING TRIGGER --}}
-    <button id="ai-bubble-btn"
-            @click="togglePanel()"
-            :class="{ 'listening': listening }"
-            class="w-14 h-14 rounded-full text-white flex items-center justify-center shrink-0"
-            title="Asistente IA"
-    >
-        <i class="fa-solid text-xl transition-all"
-           :class="open ? 'fa-xmark' : (listening ? 'fa-microphone' : 'fa-robot')"></i>
+    <!-- Botón flotante -->
+    <button class="nova-ai-trigger" :class="{ 'listening': listening }" @click="togglePanel()">
+        <i class="fa-solid" :class="open ? 'fa-xmark' : (listening ? 'fa-microphone' : 'fa-robot')"></i>
     </button>
 </div>
 
 <script>
-function aiAssistant() {
+function novaAIAssistant() {
     return {
-        open:         false,
-        loading:      false,
-        listening:    false,
-        showReload:   false,
-        input:        '',
-        messages:     [],
+        open: false,
+        loading: false,
+        listening: false,
+        input: '',
+        messages: [],
         confirmation: null,
-        recognition:  null,
-        panelClass:   'ai-entering',
-        pageContext:  null, // Ahora tiene TODOS los datos de la actividad
+        recognition: null,
+        panelAnimation: 'entering',
+        pageContext: null,
+        openingActivityId: null,
+        toast: {
+            visible: false,
+            message: '',
+            type: 'success',
+            icon: 'fa-check-circle'
+        },
 
         init() {
             this.refreshContext();
-            window.novaContext = this.pageContext ?? window.novaContext ?? null;
 
+            // Escuchar eventos globales
             window.addEventListener('ai-context-changed', (e) => {
-                this.pageContext = e.detail ?? null;
-                window.novaContext = this.pageContext;
+                this.pageContext = e.detail;
             });
 
             window.addEventListener('open-activity-ai', (e) => {
                 this.openWithFullContext(e.detail.activity, e.detail.courseName, e.detail.fullContext);
             });
 
+            window.addEventListener('ai-toast', (e) => {
+                const message = e.detail?.message || 'Acción ejecutada';
+                const type = e.detail?.type === 'error' ? 'error' : 'success';
+                const icon = type === 'error' ? 'fa-circle-xmark' : 'fa-check-circle';
+                this.showToast(message, type, icon);
+            });
+
+            // Animación de apertura
             this.$watch('open', (val) => {
                 if (val) {
-                    this.panelClass = 'ai-entering';
-                    requestAnimationFrame(() => setTimeout(() => { this.panelClass = 'ai-visible'; }, 10));
+                    this.panelAnimation = 'entering';
+                    setTimeout(() => { this.panelAnimation = 'visible'; }, 10);
                     this.$nextTick(() => this.scrollToBottom());
                 }
             });
         },
 
         refreshContext() {
-            this.pageContext = window.novaContext ?? window.AI_PAGE_CONTEXT ?? null;
-        },
-
-        getInputPlaceholder() {
-            const ctx = window.novaContext ?? this.pageContext ?? null;
-            const title = ctx?.title ?? ctx?.name ?? ctx?.subject_name ?? null;
-            if (title) {
-                return `Modifica la clase "${title}" para que...`;
-            }
-            return 'Escribe un comando... (Enter para enviar)';
+            this.pageContext = window.novaContext || window.AI_PAGE_CONTEXT || null;
         },
 
         togglePanel() {
@@ -307,12 +778,211 @@ function aiAssistant() {
             this.open = !this.open;
         },
 
-        toggleVoice() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                this.pushMsg('Tu navegador no soporta dictado de voz. Usa Chrome.', 'info', '🎙️');
+        openWithFullContext(activity, courseName, fullContext) {
+            this.open = true;
+            this.pageContext = fullContext || activity;
+            window.novaContext = this.pageContext;
+            window.AI_PAGE_CONTEXT = this.pageContext;
+            window.dispatchEvent(new CustomEvent('ai-context-changed', { detail: this.pageContext }));
+
+            // Mensaje de contexto
+            this.messages = [];
+            this.addMessage('assistant', `📝 **Editando:** ${activity.title}\n🏫 **Curso:** ${courseName}\n📅 **Fecha:** ${activity.due_date || 'No definida'}\n\n¿Qué te gustaría modificar?`);
+
+            // Precargar prompt
+            if (activity.type === 'clase') {
+                this.input = `Modifica la clase "${activity.title}" para que los alumnos copien en su cuaderno la teoría`;
+            } else {
+                this.input = `Modifica la actividad "${activity.title}"`;
+            }
+
+            this.$nextTick(() => {
+                document.querySelector('.nova-ai-input textarea')?.focus();
+                this.scrollToBottom();
+            });
+        },
+
+        isConfirmationAffirmative(text) {
+            const t = text.trim().replace(/[.!¡?¿]+$/g, '').toLowerCase();
+            return /^(s[ií]|ok|okay|dale|adelante|confirmo|procede|proceder|hazlo|listo|yes|yep)$/i.test(t);
+        },
+
+        async executeConfirmed() {
+            const liveContext = window.novaContext || this.pageContext || null;
+            const conversation = this.messages
+                .filter(m => m.role === 'user' || m.role === 'assistant')
+                .map(m => ({ role: m.role, content: m.text }));
+            const res = await fetch('/ai/command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    prompt: '',
+                    message: '',
+                    confirmed: true,
+                    screen_context: liveContext,
+                    conversation: conversation.length ? conversation : undefined,
+                    payload: { mensaje_usuario: '[confirmación]', contexto: liveContext },
+                }),
+            });
+            return res.json();
+        },
+
+        async sendCommand() {
+            const text = this.input.trim();
+            if (!text || this.loading) return;
+
+            if (this.confirmation && this.isConfirmationAffirmative(text)) {
+                this.addMessage('user', text);
+                this.input = '';
+                this.loading = true;
+                this.scrollToBottom();
+                try {
+                    const json = await this.executeConfirmed();
+                    this.confirmation = null;
+                    this.handleResponse(json);
+                } catch (err) {
+                    this.showToast('Error de conexión', 'error', 'fa-exclamation-triangle');
+                    this.addMessage('assistant', '❌ Lo siento, hubo un error de conexión. Intenta de nuevo.');
+                } finally {
+                    this.loading = false;
+                    this.scrollToBottom();
+                }
                 return;
             }
-            if (this.listening) { this.recognition?.stop(); return; }
+
+            this.addMessage('user', text);
+            this.input = '';
+            this.loading = true;
+            this.scrollToBottom();
+
+            try {
+                const liveContext = window.novaContext || this.pageContext || null;
+                const conversation = this.messages
+                    .filter(m => m.role === 'user' || m.role === 'assistant')
+                    .map(m => ({ role: m.role, content: m.text }));
+                const res = await fetch('/ai/command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        prompt: text,
+                        message: text,
+                        screen_context: liveContext,
+                        conversation: conversation.length ? conversation : undefined,
+                        payload: { mensaje_usuario: text, contexto: liveContext },
+                    }),
+                });
+
+                const json = await res.json();
+                this.handleResponse(json);
+            } catch (err) {
+                this.showToast('Error de conexión', 'error', 'fa-exclamation-triangle');
+                this.addMessage('assistant', '❌ Lo siento, hubo un error de conexión. Intenta de nuevo.');
+            } finally {
+                this.loading = false;
+                this.scrollToBottom();
+            }
+        },
+
+        handleResponse(json) {
+            if (json.message && !json.actions && !json.requires_confirmation) {
+                this.addMessage('assistant', json.message);
+                return;
+            }
+
+            if (json.requires_confirmation) {
+                if (json.message) this.addMessage('assistant', json.message);
+                this.confirmation = json;
+                return;
+            }
+
+            if (Array.isArray(json.actions)) {
+                if (json.any_success || (json.status === 'success' && json.bulk_plan)) {
+                    this.confirmation = null;
+                }
+                json.actions.forEach(a => {
+                    if (a.success) {
+                        this.addMessage('action', `✅ ${a.message}`);
+                        if (a.action_type === 'activity' && a.data?.activity_id) {
+                            this.addMessage('activity_created', '', {
+                                activity: {
+                                    id: a.data.activity_id,
+                                    title: a.data.title || 'Actividad creada',
+                                    course_name: a.data.course_name || '',
+                                    due_date: a.data.due_date || '',
+                                    type: a.data.type || '',
+                                    course_id: a.data.course_id || null,
+                                }
+                            });
+                        }
+                        if (a.action_type === 'delete') {
+                            this.showToast('Actividades eliminadas correctamente', 'success', 'fa-trash-alt');
+                        }
+                    } else {
+                        this.addMessage('assistant', `⚠️ ${a.message}`);
+                    }
+                });
+
+                if (json.any_success) {
+                    const toastMsg = json.bulk_plan?.activities_created
+                        ? `¡Listo! ${json.bulk_plan.activities_created} actividades creadas`
+                        : 'Cambios aplicados correctamente';
+                    this.showToast(toastMsg, 'success', 'fa-check-circle');
+                    window.dispatchEvent(new CustomEvent('ai-canvas-refresh'));
+                }
+            }
+
+            if (json.error) {
+                this.addMessage('assistant', `❌ Error: ${json.error}`);
+                this.showToast(json.error, 'error', 'fa-exclamation-triangle');
+            }
+        },
+
+        addMessage(role, text, extra = {}) {
+            this.messages.push({ role, text, ...extra });
+            this.$nextTick(() => this.scrollToBottom());
+        },
+
+        openCreatedActivity(activity) {
+            if (!activity?.id) {
+                this.showToast('No se pudo abrir la actividad', 'error', 'fa-circle-xmark');
+                return;
+            }
+
+            this.openingActivityId = activity.id;
+            this.showToast('Buscando actividad...', 'success', 'fa-location-arrow');
+
+            window.dispatchEvent(new CustomEvent('open-activity-modal', {
+                detail: {
+                    id: activity.id,
+                    course_id: activity.course_id ?? null,
+                    due_date: activity.due_date ?? null,
+                    source: 'chat-card',
+                }
+            }));
+
+            setTimeout(() => {
+                this.openingActivityId = null;
+            }, 900);
+        },
+
+        toggleVoice() {
+            if (!('webkitSpeechRecognition' in window)) {
+                this.showToast('Tu navegador no soporta dictado', 'error', 'fa-microphone-slash');
+                return;
+            }
+
+            if (this.listening) {
+                this.recognition?.stop();
+                return;
+            }
 
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             this.recognition = new SR();
@@ -325,272 +995,32 @@ function aiAssistant() {
                 this.listening = false;
                 this.sendCommand();
             };
-            this.recognition.onerror = (e) => {
-                this.pushMsg(`Error de micrófono: ${e.error}`, 'info', '❌');
+
+            this.recognition.onerror = () => {
+                this.showToast('Error de micrófono', 'error', 'fa-microphone-slash');
                 this.listening = false;
             };
-            this.recognition.onend = () => { this.listening = false; };
+
             this.recognition.start();
             this.listening = true;
             this.open = true;
         },
 
-        // VERSIÓN FINAL - Con TODOS los datos
-        openWithFullContext(activity, courseName, fullContext) {
-            this.open = true;
-            
-            // Guardar TODO el contexto completo
-            this.pageContext = fullContext || activity;
-            window.AI_PAGE_CONTEXT = this.pageContext;
-            window.novaContext = this.pageContext;
-            
-            window.dispatchEvent(new CustomEvent('ai-context-changed', { detail: this.pageContext }));
-            
-            this.messages = [];
-            
-            // Mensaje con TODA la información
-            this.messages.push({
-                role: 'info',
-                text: `📝 **Editando:** ${activity.title}\n**Curso:** ${courseName}\n**ID:** ${activity.id}\n**Fecha:** ${activity.due_date || 'No definida'}`,
-                type: 'info'
-            });
-            
-            // Precargar prompt inteligente
-            if (activity.type === 'clase') {
-                this.input = `Modifica la clase "${activity.title}" para que los alumnos copien en su cuaderno la teoría y al finalizar escuchen una canción relacionada`;
-            } else {
-                this.input = `Modifica la actividad "${activity.title}"`;
-            }
-            
-            this.$nextTick(() => {
-                document.querySelector('#ai-assistant-root textarea')?.focus();
-                this.scrollToBottom();
-            });
-        },
-
-        async sendCommand() {
-            const text = this.input.trim();
-            if (!text || this.loading) return;
-
-            this.messages.push({ role: 'user', text });
-            this.input      = '';
-            this.loading    = true;
-            this.showReload = false;
-            this.$nextTick(() => this.scrollToBottom());
-
-            try {
-                // Enviar SIEMPRE el contexto vivo
-                const liveContext = window.novaContext ?? this.pageContext ?? window.AI_PAGE_CONTEXT ?? null;
-                this.pageContext = liveContext;
-
-                const handledTaskIntent = await this.handleCreateTaskIntent(text, liveContext);
-                if (handledTaskIntent) {
-                    return;
-                }
-
-                const res = await fetch('/ai/command', {
-                    method:  'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept':       'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({
-                        prompt:         text,
-                        message:        text,
-                        screen_context: liveContext,
-                        payload: {
-                            mensaje_usuario: text,
-                            contexto: liveContext,
-                        },
-                    }),
-                });
-                const json = await res.json();
-                if (res.status === 422) {
-                    throw new Error(json.error || json.message || 'Mensaje inválido');
-                }
-                if (json.action === 'refresh') {
-                    window.dispatchEvent(new CustomEvent('ai-canvas-refresh'));
-                }
-                json._original_prompt = text;
-                this.handleResponse(json);
-            } catch (err) {
-                this.pushMsg('Nova está pensando... reintentando', 'info', '⏳');
-                console.error(err);
-            } finally {
-                this.loading = false;
-                this.$nextTick(() => this.scrollToBottom());
-            }
-        },
-
-        parseCreateTaskIntent(text, ctx) {
-            const normalized = (text || '').toLowerCase();
-            if (!normalized.includes('crear tarea')) {
-                return null;
-            }
-
-            const activityIdFromContext = ctx?.id && (ctx?.type === 'activity' || ctx?.activity_type) ? Number(ctx.id) : null;
-            const activityIdFromText = normalized.match(/actividad\s*#?\s*(\d+)/i)?.[1] ?? null;
-            const activityId = Number(activityIdFromText || activityIdFromContext || 0);
-            if (!activityId) {
-                return { error: 'Para crear tarea por chat, abre primero una actividad o indica "actividad 123".' };
-            }
-
-            const dateMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
-            const pointsMatch = text.match(/(\d+)\s*(puntos|pts)/i);
-            const titleRaw = text.replace(/crear tarea/ig, '').trim();
-            const title = titleRaw.length > 3 ? titleRaw : 'Tarea creada desde chat IA';
-
-            return {
-                activity_id: activityId,
-                titulo: title,
-                descripcion: text,
-                fecha_entrega: dateMatch ? dateMatch[1] : new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-                puntos: pointsMatch ? Number(pointsMatch[1]) : 20,
-            };
-        },
-
-        async handleCreateTaskIntent(text, ctx) {
-            const parsed = this.parseCreateTaskIntent(text, ctx);
-            if (!parsed) return false;
-
-            if (parsed.error) {
-                this.pushMsg(parsed.error, 'info', '⚠️');
-                return true;
-            }
-
-            const res = await fetch('/teacher/tareas/store', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify(parsed),
-            });
-
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                this.pushMsg(json.error || json.message || 'No se pudo crear la tarea.', 'error', '❌');
-                return true;
-            }
-
-            this.messages.push({
-                role: 'action',
-                text: `Tarea creada: **${json.tarea?.titulo ?? parsed.titulo}**`,
-                icon: '🧩',
-                action_type: 'activity',
-                success: true,
-            });
-            window.dispatchEvent(new CustomEvent('ai-canvas-refresh'));
-            this.showReload = true;
-            return true;
-        },
-
-        async executeConfirmed() {
-            if (!this.confirmation) return;
-            const prompt = this.confirmation.original_prompt;
-            this.confirmation = null;
-
-            this.pushMsg('Confirmado. Ejecutando...', 'info', '✔️');
-            this.loading = true;
-
-            try {
-                const res = await fetch('/ai/command', {
-                    method:  'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept':       'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ 
-                        prompt, 
-                        confirmed: true, 
-                        screen_context: this.pageContext 
-                    }),
-                });
-                const json = await res.json();
-                this.handleResponse(json);
-            } catch {
-                this.pushMsg('Error al ejecutar la acción confirmada.', 'info', '❌');
-            } finally {
-                this.loading = false;
-                this.$nextTick(() => this.scrollToBottom());
-            }
-        },
-
-        handleResponse(json) {
-            if (json.message && !json.actions && !json.requires_confirmation) {
-                this.pushMsg(json.message, 'info', 'ℹ️');
-                return;
-            }
-            if (json.requires_confirmation) {
-                this.confirmation = { ...json, original_prompt: json._original_prompt || json.original_prompt || '' };
-                this.$nextTick(() => this.scrollToBottom());
-                return;
-            }
-            if (Array.isArray(json.actions)) {
-                json.actions.forEach(a => {
-                    this.messages.push({
-                        role:        'action',
-                        text:        a.message,
-                        icon:        a.icon,
-                        action_type: a.action_type,
-                        success:     a.success,
-                    });
-
-                    if (a.action_type === 'ui_pref' && a.data) {
-                        window.dispatchEvent(new CustomEvent('ai-ui-pref', { detail: a.data }));
-                    }
-                    if (['bulk_plan', 'activity', 'course', 'student', 'delete', 'grade'].includes(a.action_type) && a.success) {
-                        window.dispatchEvent(new CustomEvent('ai-canvas-refresh'));
-                    }
-                });
-                if (json.any_success) this.showReload = true;
-            }
-            if (json.message) {
-                this.pushMsg(json.message, 'info', json.all_success ? '✅' : 'ℹ️');
-            }
-            if (json.error) {
-                this.pushMsg(json.error, 'error', '❌');
-            }
-        },
-
-        pushMsg(text, type, icon) {
-            this.messages.push({ role: 'info', text, type, icon });
-            this.$nextTick(() => this.scrollToBottom());
-        },
-
-        getCardClass(msg) {
-            if (!msg.success) return 'error-card';
-            const t = msg.action_type;
-            if (t === 'course')   return 'success-course';
-            if (t === 'activity') return 'success-activity';
-            if (t === 'student')  return 'success-student';
-            return 'success-default';
-        },
-
-        formatDestructive(a) {
-            const hints = a.args?.course_name_hint || a.args?.course_id || '';
-            return `${a.function}(${hints})`;
-        },
-
         scrollToBottom() {
-            const log = document.getElementById('ai-log');
-            if (log) log.scrollTop = log.scrollHeight;
+            const container = document.querySelector('.nova-ai-messages');
+            if (container) container.scrollTop = container.scrollHeight;
         },
 
-        reload() {
-            window.dispatchEvent(new CustomEvent('ai-canvas-refresh'));
-            setTimeout(() => {
-                if (this.showReload) window.location.reload();
-            }, 150);
+        showToast(message, type, icon) {
+            this.toast = { visible: true, message, type, icon };
+            setTimeout(() => { this.toast.visible = false; }, 3000);
         },
 
         renderMarkdown(text) {
             if (!text) return '';
-            return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        },
+            return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                       .replace(/\n/g, '<br>');
+        }
     };
 }
 </script>

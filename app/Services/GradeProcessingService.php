@@ -13,7 +13,7 @@ class GradeProcessingService
     public function __construct()
     {
         $this->apiKey = config('services.openai.key', env('OPENAI_API_KEY', ''));
-        $this->model  = 'gpt-4.1';
+        $this->model  = 'gpt-5.1 mini  ';
     }
 
     /**

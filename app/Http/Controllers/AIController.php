@@ -79,7 +79,7 @@ class AIController extends Controller
             $response = Http::withToken($apiKey)
                 ->timeout(60)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4.1',
+                    'model' => 'gpt-5.1 mini',
                     'messages' => [
                         ['role' => 'system', 'content' => $systemPrompt],
                         ['role' => 'user', 'content' => $userMessage],
@@ -153,7 +153,7 @@ class AIController extends Controller
             $response = Http::withToken($apiKey)
                 ->timeout(45)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4.1',
+                    'model' => 'gpt-5.1 mini',
                     'messages' => [
                         ['role' => 'system', 'content' => $systemPrompt],
                         ['role' => 'user', 'content' => $userMessage],
@@ -209,7 +209,7 @@ class AIController extends Controller
             $response = Http::withToken($apiKey)
                 ->timeout($timeout)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4.1',
+                    'model' => 'gpt-5.1 mini',
                     'messages' => [
                         ['role' => 'system', 'content' => $systemPrompt],
                         ['role' => 'user', 'content' => $userMessage],
