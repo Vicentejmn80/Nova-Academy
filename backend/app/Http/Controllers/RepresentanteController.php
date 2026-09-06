@@ -35,9 +35,30 @@ class RepresentanteController extends Controller
             'total_events' => 0,
             'events' => new \stdClass(),
         ];
+        $summary = [
+            'courses_count' => 0,
+            'attendance' => ['percent' => null, 'label' => '', 'absences' => 0, 'tardies' => 0, 'by_course' => []],
+            'average' => ['value' => null, 'label' => ''],
+            'pending_tasks' => ['count' => 0, 'next_date' => null, 'next_title' => null, 'items' => []],
+            'evaluations' => ['count' => 0, 'next_date' => null, 'next_title' => null, 'items' => []],
+            'absence_requests' => [],
+        ];
+        $subjects = [];
         if ($students->isNotEmpty()) {
+            $first = $students->first();
             try {
-                $calendar = $this->dashboard->calendar($students->first());
+                $calendar = $this->dashboard->calendar($first);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+            try {
+                $summary = $this->dashboard->summary($first);
+            } catch (\Throwable $e) {
+                report($e);
+                $summary['courses_count'] = $this->dashboard->studentPayload($first)['courses_count'];
+            }
+            try {
+                $subjects = $this->dashboard->subjects($first);
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -52,6 +73,8 @@ class RepresentanteController extends Controller
                     'requires_comment' => (bool) $r->requires_comment,
                 ])->values(),
                 'calendar' => $calendar,
+                'summary' => $summary,
+                'subjects' => $subjects,
                 'schoolName' => $school?->name,
                 'parent' => [
                     'name' => $user->name,

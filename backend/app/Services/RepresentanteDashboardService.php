@@ -92,11 +92,19 @@ class RepresentanteDashboardService
         return $student->courses()->pluck('courses.id');
     }
 
+    /**
+     * Same pivot query as enrolledCourseIds(), with teacher for subject cards.
+     */
+    private function enrolledCourses(Student $student): Collection
+    {
+        return $student->courses()->with('teacher:id,name')->get();
+    }
+
     public function summary(Student $student): array
     {
         $monthStart = now()->startOfMonth()->toDateString();
         $monthEnd = now()->endOfMonth()->toDateString();
-        $courseIds = $student->courses->pluck('id');
+        $courseIds = $this->enrolledCourseIds($student);
 
         $attendancePct = null;
         $attendanceLabel = 'Sin registros aún';
@@ -450,7 +458,7 @@ class RepresentanteDashboardService
 
     public function subjects(Student $student): array
     {
-        return $student->courses->map(function (Course $course) use ($student) {
+        return $this->enrolledCourses($student)->map(function (Course $course) use ($student) {
             $detail = $this->subjectMetrics($student, $course);
 
             return [
@@ -792,7 +800,7 @@ class RepresentanteDashboardService
 
     private function globalAverage(Student $student): ?float
     {
-        $averages = $student->courses
+        $averages = $this->enrolledCourses($student)
             ->map(fn (Course $course) => $this->courseAverage($student, $course))
             ->filter(fn ($v) => $v !== null);
 
@@ -906,7 +914,7 @@ class RepresentanteDashboardService
 
     private function attendanceByCourse(Student $student): array
     {
-        return $student->courses->map(function (Course $course) use ($student) {
+        return $this->enrolledCourses($student)->map(function (Course $course) use ($student) {
             $stats = $this->attendanceSummary->percentForStudentInCourse($student, $course);
 
             return [

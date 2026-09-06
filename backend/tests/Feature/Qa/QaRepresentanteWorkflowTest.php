@@ -3,7 +3,9 @@
 namespace Tests\Feature\Qa;
 
 use App\Models\Activity;
+use App\Models\Grade;
 use App\Models\Student;
+use App\Services\RepresentanteDashboardService;
 use App\Support\Qa\QaSchool;
 
 class QaRepresentanteWorkflowTest extends QaTestCase
@@ -118,6 +120,66 @@ class QaRepresentanteWorkflowTest extends QaTestCase
             '/courses_count["\']?\s*:\s*'.$enrolled.'/',
             $hub->getContent()
         );
+    }
+
+    public function test_parent_hub_shows_average_and_pending_when_sibling_fetch_empty(): void
+    {
+        $parent = $this->parent(1);
+        $student = Student::query()->where('name', 'Alumno QA 01')->firstOrFail();
+        $this->assertGreaterThan(0, $student->courses()->count());
+        $this->assertGreaterThan(0, Grade::query()->where('student_id', $student->id)->whereNotNull('score')->count());
+
+        $courseId = (int) $student->courses()->value('courses.id');
+        Activity::create([
+            'teacher_id' => $student->teacher_id,
+            'course_id' => $courseId,
+            'colegio_id' => $student->colegio_id,
+            'title' => 'Tarea QA Pendiente Hub',
+            'description' => 'Pendiente real para el KPI de entregas.',
+            'due_date' => now()->addDays(5)->toDateString(),
+            'type' => Activity::TYPE_TAREA,
+            'is_homework' => true,
+            'max_score' => 20,
+            'weight_percentage' => 10,
+        ]);
+
+        $emptyEager = Student::query()->findOrFail($student->id);
+        $emptyEager->setRelation('courses', collect());
+        $this->assertTrue($emptyEager->relationLoaded('courses'));
+        $this->assertCount(0, $emptyEager->courses);
+
+        $service = app(RepresentanteDashboardService::class);
+        $summary = $service->summary($emptyEager);
+        $subjects = $service->subjects($emptyEager);
+
+        $this->assertNotNull($summary['average']['value']);
+        $this->assertGreaterThan(0, (float) $summary['average']['value']);
+        $this->assertGreaterThan(0, (int) ($summary['pending_tasks']['count'] ?? 0));
+        $this->assertTrue(
+            collect($summary['pending_tasks']['items'] ?? [])->contains(
+                fn ($item) => str_contains((string) ($item['title'] ?? ''), 'Tarea QA Pendiente Hub')
+            ),
+            json_encode($summary['pending_tasks'], JSON_UNESCAPED_UNICODE)
+        );
+        $this->assertNotEmpty($subjects);
+        $this->assertNotNull($subjects[0]['average'] ?? null);
+
+        $hub = $this->loginAs($parent)
+            ->get(route('representante.dashboard'))
+            ->assertOk();
+        $html = $hub->getContent();
+        $this->assertDoesNotMatchRegularExpression('/summary:\s*\{\s*courses_count:/', $html);
+        $this->assertMatchesRegularExpression('/"value"\s*:\s*[1-9]/', $html);
+        $hub->assertSee('Tarea QA Pendiente Hub', false);
+        $this->assertMatchesRegularExpression('/subjects:\s*\[/', $html);
+        $this->assertStringContainsString('"name":', $html);
+
+        $resumen = $this->loginAs($parent)
+            ->getJson(route('representante.api.resumen', $student->id))
+            ->assertOk()
+            ->json('summary');
+        $this->assertNotNull($resumen['average']['value'] ?? null);
+        $this->assertGreaterThan(0, (int) ($resumen['pending_tasks']['count'] ?? 0));
     }
 
     public function test_parent_contextual_ai_uses_real_activity_without_open_chatbot(): void
