@@ -182,6 +182,44 @@ class QaRepresentanteWorkflowTest extends QaTestCase
         $this->assertGreaterThan(0, (int) ($resumen['pending_tasks']['count'] ?? 0));
     }
 
+    public function test_parent_hub_lists_subjects_when_sibling_fetch_empty(): void
+    {
+        $parent = $this->parent(1);
+        $student = Student::query()->where('name', 'Alumno QA 01')->firstOrFail();
+        $course = $student->courses()->with('teacher:id,name')->firstOrFail();
+        $empty = Student::query()->findOrFail($student->id);
+        $empty->setRelation('courses', collect());
+
+        $detail = app(RepresentanteDashboardService::class)->subjectDetail($empty, $course);
+        $this->assertSame($course->id, $detail['id']);
+        $this->assertSame($course->subject_name, $detail['name']);
+        $this->assertNotNull($detail['average']);
+        $this->assertNotEmpty($detail['items']);
+
+        $hub = $this->loginAs($parent)
+            ->get(route('representante.dashboard'))
+            ->assertOk();
+        $html = $hub->getContent();
+        $this->assertMatchesRegularExpression('/subjects:\s*\[\{/', $html);
+        $this->assertTrue(
+            str_contains($html, json_encode($course->subject_name))
+            || str_contains($html, $course->subject_name),
+            'Hub SSR should include enrolled subject names'
+        );
+
+        $this->loginAs($parent)
+            ->getJson(route('representante.api.materias', $student->id))
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonFragment(['name' => $course->subject_name]);
+
+        $this->loginAs($parent)
+            ->getJson(route('representante.api.materia', ['estudiante' => $student->id, 'materia' => $course->id]))
+            ->assertOk()
+            ->assertJsonPath('subject.id', $course->id)
+            ->assertJsonPath('subject.name', $course->subject_name);
+    }
+
     public function test_parent_contextual_ai_uses_real_activity_without_open_chatbot(): void
     {
         config()->set('services.openai.key', null);

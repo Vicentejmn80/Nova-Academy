@@ -477,7 +477,7 @@ class RepresentanteDashboardService
 
     public function subjectDetail(Student $student, Course $course): array
     {
-        abort_unless($student->courses->contains('id', $course->id), 404);
+        abort_unless($this->enrolledCourseIds($student)->contains((int) $course->id), 404);
 
         $metrics = $this->subjectMetrics($student, $course);
         $items = $this->gradedItems($student, $course);
