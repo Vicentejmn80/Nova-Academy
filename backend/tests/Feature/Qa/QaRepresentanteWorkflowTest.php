@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\CommunicationAnnouncement;
 use App\Models\CommunicationThread;
 use App\Models\Grade;
+use App\Models\Notification;
 use App\Models\Student;
 use App\Services\RepresentanteDashboardService;
 use App\Support\Qa\QaSchool;
@@ -285,6 +286,39 @@ class QaRepresentanteWorkflowTest extends QaTestCase
             ->getJson(route('representante.api.mensajes', ['estudiante_id' => $student->id]))
             ->assertOk()
             ->assertJsonFragment(['course' => $course->subject_name]);
+    }
+
+    public function test_parent_hub_lists_notifications_when_sibling_fetch_empty(): void
+    {
+        $parent = $this->parent(1);
+        Notification::create([
+            'user_id' => $parent->id,
+            'colegio_id' => $parent->colegio_id,
+            'title' => 'Notificación QA Hub',
+            'message' => 'Hay una nota nueva de Matemática.',
+            'link' => '/representante/dashboard',
+        ]);
+
+        $payload = app(RepresentanteDashboardService::class)->notifications($parent);
+        $this->assertGreaterThan(0, (int) $payload['unread']);
+        $this->assertTrue(collect($payload['items'])->contains(fn ($n) => $n['title'] === 'Notificación QA Hub'));
+
+        $hub = $this->loginAs($parent)
+            ->get(route('representante.dashboard'))
+            ->assertOk();
+        $html = $hub->getContent();
+        $this->assertFalse(str_contains($html, 'notifications: []'));
+        $this->assertFalse(str_contains($html, 'unreadNotif: 0'));
+        $this->assertTrue(
+            str_contains($html, 'Notificación QA Hub')
+            || str_contains($html, json_encode('Notificación QA Hub')),
+            'Hub SSR should include the parent notification title'
+        );
+
+        $this->loginAs($parent)
+            ->getJson(route('representante.api.notificaciones'))
+            ->assertOk()
+            ->assertJsonFragment(['title' => 'Notificación QA Hub']);
     }
 
     public function test_parent_contextual_ai_uses_real_activity_without_open_chatbot(): void

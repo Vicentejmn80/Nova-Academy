@@ -46,6 +46,12 @@ class RepresentanteController extends Controller
         $subjects = [];
         $announcements = [];
         $threads = [];
+        $notifications = ['unread' => 0, 'items' => []];
+        try {
+            $notifications = $this->dashboard->notifications($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
         if ($students->isNotEmpty()) {
             $first = $students->first();
             try {
@@ -89,6 +95,7 @@ class RepresentanteController extends Controller
                 'subjects' => $subjects,
                 'announcements' => $announcements,
                 'threads' => $threads,
+                'notifications' => $notifications,
                 'schoolName' => $school?->name,
                 'parent' => [
                     'name' => $user->name,
