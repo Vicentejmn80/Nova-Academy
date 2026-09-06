@@ -4,6 +4,7 @@ namespace Tests\Feature\Qa;
 
 use App\Models\Activity;
 use App\Models\CommunicationAnnouncement;
+use App\Models\CommunicationThread;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Services\RepresentanteDashboardService;
@@ -254,6 +255,36 @@ class QaRepresentanteWorkflowTest extends QaTestCase
             ->getJson(route('representante.api.anuncios', ['estudiante_id' => $student->id]))
             ->assertOk()
             ->assertJsonFragment(['title' => 'Anuncio QA Curso Hub']);
+    }
+
+    public function test_parent_hub_lists_messages_when_sibling_fetch_empty(): void
+    {
+        $parent = $this->parent(1);
+        $student = Student::query()->where('name', 'Alumno QA 01')->firstOrFail();
+        $course = $student->courses()->firstOrFail();
+        $service = app(RepresentanteDashboardService::class);
+        $service->startThread($parent, $student->load('courses'), $course->id, 'Hola QA, ¿llegó la guía?');
+
+        $empty = Student::query()->findOrFail($student->id);
+        $empty->setRelation('courses', collect());
+        $row = collect($service->threads($parent, $empty))->first();
+        $this->assertNotNull($row);
+        $this->assertSame($course->subject_name, $row['course']);
+        $this->assertStringContainsString('Hola QA', (string) $row['preview']);
+
+        $started = $service->startThread($parent, $empty, $course->id, 'Segundo mensaje QA');
+        $this->assertNotNull($started->id);
+
+        $hub = $this->loginAs($parent)
+            ->get(route('representante.dashboard'))
+            ->assertOk();
+        $this->assertFalse(str_contains($hub->getContent(), 'threads: []'));
+        $hub->assertSee('Segundo mensaje QA', false);
+
+        $this->loginAs($parent)
+            ->getJson(route('representante.api.mensajes', ['estudiante_id' => $student->id]))
+            ->assertOk()
+            ->assertJsonFragment(['course' => $course->subject_name]);
     }
 
     public function test_parent_contextual_ai_uses_real_activity_without_open_chatbot(): void

@@ -45,6 +45,7 @@ class RepresentanteController extends Controller
         ];
         $subjects = [];
         $announcements = [];
+        $threads = [];
         if ($students->isNotEmpty()) {
             $first = $students->first();
             try {
@@ -68,6 +69,11 @@ class RepresentanteController extends Controller
             } catch (\Throwable $e) {
                 report($e);
             }
+            try {
+                $threads = $this->dashboard->threads($user, $first);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return response()
@@ -82,6 +88,7 @@ class RepresentanteController extends Controller
                 'summary' => $summary,
                 'subjects' => $subjects,
                 'announcements' => $announcements,
+                'threads' => $threads,
                 'schoolName' => $school?->name,
                 'parent' => [
                     'name' => $user->name,

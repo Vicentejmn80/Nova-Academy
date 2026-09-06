@@ -607,7 +607,7 @@ class RepresentanteDashboardService
                     ->where('sender_role', '!=', 'representante')
                     ->where('sender_role', '!=', 'parent')
                     ->count();
-                $course = $student->courses->firstWhere('teacher_id', $thread->teacher_id);
+                $course = $this->enrolledCourses($student)->firstWhere('teacher_id', $thread->teacher_id);
 
                 return [
                     'id' => $thread->id,
@@ -637,7 +637,7 @@ class RepresentanteDashboardService
             'id' => $thread->id,
             'teacher' => $thread->teacher?->name ?? $thread->contact_name ?? 'Docente',
             'teacher_id' => $thread->teacher_id,
-            'course_id' => $student->courses->firstWhere('teacher_id', $thread->teacher_id)?->id,
+            'course_id' => $this->enrolledCourses($student)->firstWhere('teacher_id', $thread->teacher_id)?->id,
             'messages' => $thread->messages()->orderBy('created_at')->get()->map(fn (CommunicationMessage $m) => [
                 'id' => $m->id,
                 'body' => $m->body,
@@ -679,7 +679,7 @@ class RepresentanteDashboardService
 
     public function startThread(User $parent, Student $student, int $courseId, string $body): CommunicationThread
     {
-        $course = $student->courses->firstWhere('id', $courseId);
+        $course = $this->enrolledCourses($student)->firstWhere('id', $courseId);
         abort_unless($course, 404);
 
         $thread = CommunicationThread::query()->firstOrCreate(

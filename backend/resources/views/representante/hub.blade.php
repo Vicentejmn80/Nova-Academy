@@ -1165,7 +1165,7 @@
                 calendar: @json($calendar),
                 subjects: @json($subjects),
                 announcements: @json($announcements),
-                threads: [],
+                threads: @json($threads),
                 notifications: [],
                 unreadNotif: 0,
                 selectedDay: '{{ now()->toDateString() }}',
