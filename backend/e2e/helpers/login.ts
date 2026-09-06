@@ -50,12 +50,34 @@ export function familyCalendarChips(page: Page, name: RegExp | string) {
   return page.locator('.calendar-days .cal-grade-event-title').filter({ hasText: name });
 }
 
+/**
+ * Navigate without waiting for the window `load` event.
+ * `php artisan serve` (single worker) often paints the page but never fires `load`
+ * while another request is in flight, so Playwright's default waitUntil:'load' times out.
+ */
+export async function gotoWhenReady(page: Page, path: string, ready: string): Promise<void> {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator(ready).filter({ visible: true }).first()).toBeVisible({ timeout: 20_000 });
+}
+
+/** Navigate and wait for a same-origin XHR (e.g. gestión snapshot) instead of window `load`. */
+export async function gotoWhenResponse(page: Page, path: string, urlPart: string, ready: string): Promise<void> {
+  const pending = page.waitForResponse((res) => res.url().includes(urlPart), { timeout: 45_000 });
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+  await pending;
+  await expect(page.locator(ready).filter({ visible: true }).first()).toBeVisible({ timeout: 20_000 });
+}
+
 export async function login(page: Page, email: string, password: string, expectedPath: string): Promise<void> {
-  await page.goto('/login');
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 20_000 });
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.locator('button.btn-submit').click();
-  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20000 });
+  await page.waitForURL((url) => !url.pathname.includes('/login'), {
+    timeout: 20_000,
+    waitUntil: 'domcontentloaded',
+  });
   await expect(page).toHaveURL(new RegExp(expectedPath.replace('/', '\\/')));
   const body = await page.locator('body').innerText();
   expect(body.trim().length).toBeGreaterThan(40);

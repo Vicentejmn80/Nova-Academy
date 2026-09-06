@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { loadManifest } from '../helpers/accounts';
-import { attachMonitor, assertNoFrontendCrash, login } from '../helpers/login';
+import { attachMonitor, assertNoFrontendCrash, gotoWhenReady, gotoWhenResponse, login } from '../helpers/login';
 
 const accounts = loadManifest();
 
@@ -15,7 +15,7 @@ test.describe('Director', () => {
   test('gestion lists teachers students and courses', async ({ page }) => {
     const monitor = attachMonitor(page);
     await login(page, accounts.director.email, accounts.password, '/director/dashboard');
-    await page.goto('/director/gestion');
+    await gotoWhenResponse(page, '/director/gestion', '/director/gestion/snapshot', 'table.hub-table');
     await expect(page.getByRole('heading', { name: 'Gestión' })).toBeVisible({ timeout: 20000 });
 
     await page.getByRole('button', { name: /Plantel/ }).click();
@@ -35,7 +35,7 @@ test.describe('Director', () => {
   test('create teacher via gestion hub', async ({ page }) => {
     const monitor = attachMonitor(page);
     await login(page, accounts.director.email, accounts.password, '/director/dashboard');
-    await page.goto('/director/gestion?panel=teachers');
+    await gotoWhenResponse(page, '/director/gestion?panel=teachers', '/director/gestion/snapshot', 'table.hub-table');
     await expect(page.getByRole('heading', { name: 'Plantel docente' })).toBeVisible({ timeout: 20000 });
     await page.getByRole('button', { name: /Invitar profesor/ }).click();
     await expect(page.getByRole('heading', { name: 'Nuevo profesor' })).toBeVisible({ timeout: 15000 });

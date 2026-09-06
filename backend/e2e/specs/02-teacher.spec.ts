@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { loadManifest } from '../helpers/accounts';
-import { attachMonitor, assertNoFrontendCrash, login } from '../helpers/login';
+import { attachMonitor, assertNoFrontendCrash, gotoWhenReady, login } from '../helpers/login';
 
 const accounts = loadManifest();
 const teacher = accounts.teachers[0];
@@ -10,9 +10,9 @@ test.describe('Teacher', () => {
     const monitor = attachMonitor(page);
     await login(page, teacher.email, accounts.password, '/teacher/hub');
     await expect(page.locator('#hub-root')).toBeVisible();
-    await page.goto('/teacher/courses');
+    await gotoWhenReady(page, '/teacher/courses', 'h1');
     await expect(page.getByText(/Matemática|curso/i).first()).toBeVisible({ timeout: 20000 });
-    await page.goto('/teacher/activities');
+    await gotoWhenReady(page, '/teacher/activities', 'h1');
     await expect(page.getByText(/Actividad|Tarea QA/i).first()).toBeVisible({ timeout: 20000 });
     assertNoFrontendCrash(monitor);
   });
@@ -20,7 +20,7 @@ test.describe('Teacher', () => {
   test('create activity from form', async ({ page }) => {
     const monitor = attachMonitor(page);
     await login(page, teacher.email, accounts.password, '/teacher/hub');
-    await page.goto('/teacher/activities');
+    await gotoWhenReady(page, '/teacher/activities', 'h1');
     await page.getByRole('button', { name: /Nueva/ }).click();
     await expect(page.getByRole('heading', { name: 'Crear actividad' })).toBeVisible({ timeout: 15000 });
     const courseSelect = page.locator('select[name="course_id"]');
@@ -39,7 +39,7 @@ test.describe('Teacher', () => {
   test('attendance page loads roster', async ({ page }) => {
     const monitor = attachMonitor(page);
     await login(page, teacher.email, accounts.password, '/teacher/hub');
-    await page.goto('/teacher/attendance');
+    await gotoWhenReady(page, '/teacher/attendance', 'h1');
     await expect(page.locator('select').first()).toBeVisible({ timeout: 20000 });
     await expect(page.getByText(/Alumno QA|asistencia|presente/i).first()).toBeVisible({ timeout: 20000 });
     assertNoFrontendCrash(monitor);
