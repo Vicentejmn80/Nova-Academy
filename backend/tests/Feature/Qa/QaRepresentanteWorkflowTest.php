@@ -3,6 +3,7 @@
 namespace Tests\Feature\Qa;
 
 use App\Models\Activity;
+use App\Models\CommunicationAnnouncement;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Services\RepresentanteDashboardService;
@@ -218,6 +219,41 @@ class QaRepresentanteWorkflowTest extends QaTestCase
             ->assertOk()
             ->assertJsonPath('subject.id', $course->id)
             ->assertJsonPath('subject.name', $course->subject_name);
+    }
+
+    public function test_parent_hub_lists_course_announcement_when_sibling_fetch_empty(): void
+    {
+        $parent = $this->parent(1);
+        $student = Student::query()->where('name', 'Alumno QA 01')->firstOrFail();
+        $course = $student->courses()->firstOrFail();
+        CommunicationAnnouncement::create([
+            'teacher_id' => $course->teacher_id,
+            'colegio_id' => $student->colegio_id,
+            'title' => 'Anuncio QA Curso Hub',
+            'body' => 'Solo para el curso inscrito.',
+            'targeting' => [
+                'course_id' => $course->id,
+                'audience_type' => 'parents',
+            ],
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+
+        $empty = Student::query()->findOrFail($student->id);
+        $empty->setRelation('courses', collect());
+        $titles = collect(app(RepresentanteDashboardService::class)->announcements($parent, $empty))->pluck('title');
+        $this->assertTrue($titles->contains('Anuncio QA Curso Hub'), json_encode($titles));
+
+        $hub = $this->loginAs($parent)
+            ->get(route('representante.dashboard'))
+            ->assertOk();
+        $this->assertFalse(str_contains($hub->getContent(), 'announcements: []'));
+        $hub->assertSee('Anuncio QA Curso Hub', false);
+
+        $this->loginAs($parent)
+            ->getJson(route('representante.api.anuncios', ['estudiante_id' => $student->id]))
+            ->assertOk()
+            ->assertJsonFragment(['title' => 'Anuncio QA Curso Hub']);
     }
 
     public function test_parent_contextual_ai_uses_real_activity_without_open_chatbot(): void

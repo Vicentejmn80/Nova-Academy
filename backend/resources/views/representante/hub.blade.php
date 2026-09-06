@@ -1164,7 +1164,7 @@
                 summary: @json($summary),
                 calendar: @json($calendar),
                 subjects: @json($subjects),
-                announcements: [],
+                announcements: @json($announcements),
                 threads: [],
                 notifications: [],
                 unreadNotif: 0,

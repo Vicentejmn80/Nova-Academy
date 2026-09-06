@@ -511,7 +511,7 @@ class RepresentanteDashboardService
             return [];
         }
 
-        $courseIds = $student->courses->pluck('id')->all();
+        $courseIds = $this->enrolledCourseIds($student)->map(fn ($id) => (int) $id)->all();
         $query = CommunicationAnnouncement::query()
             ->with('teacher:id,name')
             ->where('status', 'sent')

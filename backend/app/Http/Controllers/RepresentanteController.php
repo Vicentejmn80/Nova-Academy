@@ -44,6 +44,7 @@ class RepresentanteController extends Controller
             'absence_requests' => [],
         ];
         $subjects = [];
+        $announcements = [];
         if ($students->isNotEmpty()) {
             $first = $students->first();
             try {
@@ -62,6 +63,11 @@ class RepresentanteController extends Controller
             } catch (\Throwable $e) {
                 report($e);
             }
+            try {
+                $announcements = $this->dashboard->announcements($user, $first);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return response()
@@ -75,6 +81,7 @@ class RepresentanteController extends Controller
                 'calendar' => $calendar,
                 'summary' => $summary,
                 'subjects' => $subjects,
+                'announcements' => $announcements,
                 'schoolName' => $school?->name,
                 'parent' => [
                     'name' => $user->name,
